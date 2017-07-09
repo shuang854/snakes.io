@@ -6,6 +6,8 @@ var SOCKET_LIST = {};
 var PLAYER_LIST = {};
 var ROOM_LIST = [];
 
+app.set('port', (process.env.PORT || 2000));
+
 app.get('/',function(req, res) {
     res.sendFile(__dirname + '/lobby.html');
 });
@@ -240,6 +242,6 @@ function getWinner(room) {
     return winner;
 }
 
-http.listen(2000, function(){
+http.listen(app.get('port'), function(){
     console.log('Server running...');
 });
