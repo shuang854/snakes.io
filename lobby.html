@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Lobby</title>
+        <style>
+            body { background-color: powderblue; }
+            h1 { color: royalblue; font-family: monospace; font-size: 300%; }
+            #intro { color: royalblue; font-family: monospace; font-size: 200%; }
+            button { font-family: monospace; background: skyblue; border: none; padding: 10px; }
+            form { font-family: monospace; }
+            input { font-family: monospace; }
+            #list { background: #eee; margin: 0; padding: 10px; height: calc(100% - 40px); width: 130px; position: fixed; top: 8px; right: 8px; font-family: monospace; list-style-type: none; }
+            #roomlistlabel { color: blue; font-size: 125%; }
+            #me { font-family: monospace; position: fixed; bottom: 0;}
+        </style>
+    </head>
+    <script src="/socket.io/socket.io.js"></script>
+    <body>
+        <p id="intro" style="text-align: center">
+            Snakes <br><br>
+            <button id="join">Join a room</button>
+            <button id="create">Create a new room</button>
+            <button id="update">Update room list</button>
+            <br>
+        </p>
+        <p id="me">All rights reserved &copy; 2017 Simon Huang</p>
+        <form id="joinroom" style="text-align: center">
+            <br>Room to join:<br>
+            <input type="text" id="room"><br>
+            <input type="submit" id="submission" value="Submit">
+        </form>
+        <ul id="list"><li id="roomlistlabel">Room List:</li></ul>
+        <script>
+            // socket connection, hide 'join room' form
+            var socket = io.connect('/');
+            document.getElementById("joinroom").style.display = 'none';
+            
+            var join = document.querySelector("#join");
+            var create = document.querySelector("#create");
+            var update = document.querySelector("#update");
+            var roomlist = document.querySelector("#list");
+            
+            // update list of rooms
+            socket.on('getRooms', function(data) {
+                while (roomlist.childNodes.length > 1) {
+                    roomlist.removeChild(roomlist.lastChild);
+                }
+                var ROOM_LIST = data.rooms;
+                var li = document.createElement('li');
+                for (var i = 0; i < ROOM_LIST.length; i++) {
+                    if (ROOM_LIST[i].count < 4) {
+                        var n = document.createTextNode(ROOM_LIST[i].id);
+                        li = document.createElement('li');
+                        li.appendChild(n);
+                        roomlist.appendChild(li);
+                    }
+                }
+            });
+            
+            // create button action
+            create.addEventListener("click", function(event) {
+                var id = Math.floor(Math.random() * 10000);
+                socket.emit('creation', {ROOM_ID : id});
+                window.location.href = id;
+            });
+            
+            // join button action
+            join.addEventListener("click", function(event) {
+                document.getElementById("joinroom").style.display = 'block';
+                var submission = document.querySelector("#submission");
+                submission.addEventListener("click", function(event) {
+                    var id = document.getElementById("room").value;
+                    socket.emit('checkRoom', {ROOM_ID : id});
+                    socket.on('roomExists', function(data) {
+                        if (data.state == true)
+                            window.location.href = id;
+                    });
+                });
+            });
+            
+            // update button action
+            update.addEventListener("click", function(event) {
+                socket.emit('updateRooms', {});
+            });
+        </script>
+    </body>
+</html>

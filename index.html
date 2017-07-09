@@ -1,0 +1,158 @@
+<!doctype html>
+<head>
+    <style>
+        body { font-family: monospace; }
+        #playerlist { list-style-type: none; margin: 0; padding: 0; }
+        #playerlist li { padding: 5px 10px; }
+        #playerlist li:nth-child(odd) { background: #eee; }
+    </style>
+</head>
+<body>
+    <form id="login" style="text-align: center">
+        <p id="loginlabel"><br><br>Login<br></p>
+        Username:<br>
+        <input type="text" id="userID" maxlength="16"><br><br>
+        <button id="submission">Submit</button>
+    </form>
+    <canvas id="ctx" width="500" height="500" style="border:1px solid #000000;"></canvas>
+    <ul id="playerlist"></ul>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var ctx = document.getElementById("ctx").getContext("2d");
+   
+        var socket = io.connect('/');
+        var roomID = parseInt(parseURL(window.location.href).pathname.substring(1));
+        var gameStart = false;
+        
+        var playerlist = document.querySelector('#playerlist');
+        var canvas = document.querySelector('#ctx');
+        playerlist.style.display = 'none';
+        canvas.style.display = 'none';
+        
+        // process login information, remove login prompt, show chat interface
+        login.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('login');
+            var username = document.getElementById('userID').value;
+            socket.emit('joinRoom', {USER_ID : username, ROOM_ID : roomID});
+            form.parentNode.removeChild(form);
+            playerlist.style.display = 'block';
+            canvas.style.display = 'block';
+            gameStart = true;
+        });
+        
+        socket.on('getUsers', function(data) {
+            while (playerlist.childNodes.length > 0) {
+                playerlist.removeChild(playerlist.lastChild);
+            }
+            var players = data.players;
+            var li = document.createElement('li');
+            for (var i in players) {
+                if (players[i].room == roomID) {
+                    li = document.createElement('li');
+                    var svgns = 'http://www.w3.org/2000/svg';
+                    var svg = document.createElementNS(svgns, 'svg');
+                    svg.setAttribute('width', '10');
+                    svg.setAttribute('height', '10');
+                    var rect = document.createElementNS(svgns, 'rect');
+                    rect.setAttributeNS(null, 'width', '10');
+                    rect.setAttributeNS(null, 'height', '10');
+                    rect.setAttributeNS(null, 'fill', players[i].color);
+                    svg.appendChild(rect);
+                    li.appendChild(svg);
+                    var n = document.createTextNode(' ' + players[i].username);
+                    li.appendChild(n);
+                    playerlist.appendChild(li);
+                }
+            }
+        });
+        
+        socket.on('newPositions', function(data) {
+            for(var i = 0 ; i < data.length; i++) {
+                if (roomID == data[i].room) {
+                    ctx.fillStyle = data[i].color;
+                    ctx.fillRect(data[i].x, data[i].y, 10, 10);
+                }
+            }
+        });
+    
+        socket.on('clearCanvas', function(data) {
+            ctx.clearRect(0,0,500,500);
+        });
+        
+        socket.on('collision', function(data) {
+            if (data.player.canMove == true) {
+                if (data.player.x <= 0 || data.player.y <= 0 || data.player.x >= 500 || data.player.y >= 500) {
+                    socket.emit('crash', {player : data.player.id});
+                } else if (data.player.key == 'right') {
+                    var coll = ctx.getImageData(data.player.x+10+1, data.player.y, 1, 10).data;
+                    for (var j = 0; j < coll.length; j++) {
+                        if (coll[j] != 0) {
+                            socket.emit('crash', {player : data.player.id});
+                            break;
+                        }
+                    }
+                } else if (data.player.key == 'left') {
+                    var coll = ctx.getImageData(data.player.x-1, data.player.y, 1, 10).data;
+                    for (var j = 0; j < coll.length; j++) {
+                        if (coll[j] != 0) {
+                            socket.emit('crash', {player : data.player.id});
+                            break;
+                        }
+                    }
+                } else if (data.player.key == 'up') {
+                    var coll = ctx.getImageData(data.player.x, data.player.y-1, 10, 1).data;
+                    for (var j = 0; j < coll.length; j++) {
+                        if (coll[j] != 0) {
+                            console.log(coll);
+                            socket.emit('crash', {player : data.player.id});
+                            break;
+                        }
+                    }
+                } else if (data.player.key == 'down') {
+                    var coll = ctx.getImageData(data.player.x, data.player.y+10+1, 10, 1).data;
+                    for (var j = 0; j < coll.length; j++) {
+                        if (coll[j] != 0) {
+                            socket.emit('crash', {player : data.player.id});
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        
+        socket.on('winner', function(data) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = data.color;
+            ctx.font = '20px Arial';
+            ctx.fillText('Winner: ' + data.winner, 250, 250, 200);
+        })
+    
+        document.onkeydown = function(event) {
+            if (gameStart) {
+                if (event.keyCode === 68)
+                    socket.emit('keyPress', {inputID : 'right'});
+                else if (event.keyCode === 83)
+                    socket.emit('keyPress', {inputID : 'down'});
+                else if (event.keyCode === 65)
+                    socket.emit('keyPress', {inputID : 'left'});
+                else if (event.keyCode === 87)
+                    socket.emit('keyPress', {inputID : 'up'});
+            }
+        };
+    
+        function parseURL(href) {
+            var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
+            return match && {
+                href: href,
+                protocol: match[1],
+                host: match[2],
+                hostname: match[3],
+                port: match[4],
+                pathname: match[5],
+                search: match[6],
+                hash: match[7]
+            }
+        }
+    </script>
+</body>
