@@ -160,13 +160,12 @@ io.on('connection', function(socket) {
         socket.emit('roomExists', {state : exists});
     });
     
-    socket.on('crash', function(data) {
+    socket.once('crash', function(data) {
         var player = PLAYER_LIST[data.player];
         player.canMove = false;
         for (var i = 0; i < ROOM_LIST.length; i++) {
             if (player.room == ROOM_LIST[i].id) {
                 ROOM_LIST[i].winCount++;
-                console.log(ROOM_LIST[i].winCount);
                 if (ROOM_LIST[i].winCount >= 3) {
                     var winner = getWinner(ROOM_LIST[i].id);
                     io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
@@ -200,7 +199,7 @@ setInterval(function() {
         socket.emit('collision', {player : PLAYER_LIST[socket.id]});
         socket.emit('newPositions', pack);
     }
-}, 1000/10);
+}, 1000/40);
 
 function getColor(player) {
     var color = '#FFFFFF';

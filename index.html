@@ -120,7 +120,6 @@
             if (data.player.canMove == true) {
                 if (data.player.x <= 0 || data.player.y <= 0 || data.player.x >= 500 || data.player.y >= 500) {
                     socket.emit('crash', {player : data.player.id});
-                    console.log('crash');
                 } else if (data.player.key == 'right') {
                     var coll = ctx.getImageData(data.player.x+10+1, data.player.y, 1, 10).data;
                     for (var j = 0; j < coll.length; j++) {
