@@ -73,7 +73,7 @@ io.on('connection', function(socket) {
                         delete SOCKET_LIST[socket.id];
                         if (player.canMove)
                             ROOM_LIST[i].winCount++;
-                        if (ROOM_LIST[i].winCount >= 3) {
+                        if (ROOM_LIST[i].winCount >= 4) {
                             var winner = getWinner(ROOM_LIST[i].id);
                             io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
                             ROOM_LIST.splice(i, 1);
@@ -167,7 +167,7 @@ io.on('connection', function(socket) {
             if (player.room == ROOM_LIST[i].id) {
                 ROOM_LIST[i].winCount++;
                 console.log(ROOM_LIST[i].winCount);
-                if (ROOM_LIST[i].winCount >= 3) {
+                if (ROOM_LIST[i].winCount >= 4) {
                     var winner = getWinner(ROOM_LIST[i].id);
                     io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
                     ROOM_LIST.splice(i, 1);
