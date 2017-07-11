@@ -141,7 +141,6 @@
                     var coll = ctx.getImageData(data.player.x, data.player.y-1, 10, 1).data;
                     for (var j = 0; j < coll.length; j++) {
                         if (coll[j] != 0) {
-                            console.log(coll);
                             socket.emit('crash', {player : data.player.id});
                             break;
                         }
