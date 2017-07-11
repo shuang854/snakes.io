@@ -2,9 +2,17 @@
 <head>
     <style>
         body { font-family: monospace; }
-        #playerlist { list-style-type: none; margin: 0; padding: 0; }
+        #playerlist { list-style-type: none; margin: 0; padding: 0; position: fixed; top: 510px; }
         #playerlist li { padding: 5px 10px; }
         #playerlist li:nth-child(odd) { background: #eee; }
+        #ctx { position: fixed; top: 8px; left: 8px; }
+        #chat { height: 450px; width: calc(100% - 524px); overflow-y: scroll; overflow-x: hidden; position: fixed; top: 8px; right: 8px; }
+        #interface { height: 50px; width: calc(100% - 524px); position: fixed; top: 460px; right: 8px; }
+        #textbox { position: absolute; bottom: 0; height: 30px; width: calc(100% - 120px); border: 0; padding: 10px; font-size: 125%; background: skyblue; }
+        #sendmsg { position: absolute; bottom: 0; height: 50px; right: 0; width: 100px; padding: 10px; background: powderblue; border: 0; font-size: 125%; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
     </style>
 </head>
 <body>
@@ -15,6 +23,12 @@
         <button id="submission">Submit</button>
     </form>
     <canvas id="ctx" width="500" height="500" style="border:1px solid #000000;"></canvas>
+    <div id="chat">
+        <ul id="messages"></ul>
+    </div>
+    <form id="interface" onsubmit="return false;">
+        <input id="textbox" autocomplete="off" /><button id="sendmsg">Send</button>
+    </form>
     <ul id="playerlist"></ul>
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -24,22 +38,44 @@
         var roomID = parseInt(parseURL(window.location.href).pathname.substring(1));
         var gameStart = false;
         
+        var chat = document.querySelector('#chat');
+        var sendmsg = document.querySelector('#interface');
         var playerlist = document.querySelector('#playerlist');
         var canvas = document.querySelector('#ctx');
+        chat.style.display = 'none';
+        sendmsg.style.display = 'none';
         playerlist.style.display = 'none';
         canvas.style.display = 'none';
         
         // process login information, remove login prompt, show chat interface
+        var username;
         login.addEventListener('submit', function(event) {
             event.preventDefault();
             var form = document.getElementById('login');
-            var username = document.getElementById('userID').value;
+            username = document.getElementById('userID').value;
             socket.emit('joinRoom', {USER_ID : username, ROOM_ID : roomID});
             form.parentNode.removeChild(form);
             playerlist.style.display = 'block';
             canvas.style.display = 'block';
+            chat.style.display = 'block';
+            sendmsg.style.display = 'block';
             gameStart = true;
         });
+        
+        // send message
+        sendmsg.addEventListener('submit', function(event) {
+            var msg = document.getElementById('textbox').value;
+            socket.emit('message', {MESSAGE : msg, ROOM_ID : roomID, USER_ID : username});
+            document.getElementById('textbox').value = "";
+        });
+        
+        socket.on('showMsg', function(data) {
+            var msg = document.createTextNode(data.USER_ID + ": " + data.MESSAGE);
+            var li = document.createElement('li');
+            li.appendChild(msg);
+            messages.appendChild(li);
+            chat.scrollTop = chat.scrollHeight;
+        });        
         
         socket.on('getUsers', function(data) {
             while (playerlist.childNodes.length > 0) {

@@ -166,7 +166,6 @@ io.on('connection', function(socket) {
         for (var i = 0; i < ROOM_LIST.length; i++) {
             if (player.room == ROOM_LIST[i].id) {
                 ROOM_LIST[i].winCount++;
-                console.log(ROOM_LIST[i].winCount);
                 if (ROOM_LIST[i].winCount >= 3) {
                     var winner = getWinner(ROOM_LIST[i].id);
                     io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
@@ -177,6 +176,9 @@ io.on('connection', function(socket) {
         }
     });
    
+    socket.on('message', function(data) {
+        io.to(data.ROOM_ID).emit('showMsg', {MESSAGE : data.MESSAGE, USER_ID: data.USER_ID});
+    });
 })
  
 setInterval(function() {
@@ -197,7 +199,7 @@ setInterval(function() {
         socket.emit('collision', {player : PLAYER_LIST[socket.id]});
         socket.emit('newPositions', pack);
     }
-}, 1000/5);
+}, 1000/40);
 
 function getColor(player) {
     var color = '#FFFFFF';
