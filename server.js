@@ -34,7 +34,7 @@ var Player = function(id) {
         color : '#FFFFFF',
         canMove : false,
         key : 'up',
-        maxSpd : 2,
+        maxSpd : 1,
         room : 0,
     }
     self.updatePosition = function() {
