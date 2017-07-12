@@ -224,9 +224,6 @@ io.on('connection', function(socket) {
                 io.to(data.ROOM_ID).emit('clearCanvas', {});
                 getPosInRoom(PLAYER_LIST[socket.id]);
                 PLAYER_LIST[socket.id].canMove = true;
-                clearInterval(runtime);
-                setTimeout(function(){}, 3000);
-                runtime;
                 break;
             }
         }
