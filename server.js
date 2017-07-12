@@ -62,6 +62,26 @@ var Room = function(id) {
     return self;
 }
 
+var runtime = setInterval(function() {
+    var pack = [];
+    for(var i in PLAYER_LIST) {
+        var player = PLAYER_LIST[i];
+        player.updatePosition();
+        pack.push({
+            x : player.x,
+            y : player.y,
+            color : player.color,
+            room : player.room,
+            key : player.key,
+        });
+    }
+    for(var i in SOCKET_LIST) {
+        var socket = SOCKET_LIST[i];
+        socket.emit('collision', {player : PLAYER_LIST[socket.id]});
+        socket.emit('newPositions', pack);
+    }
+}, 1000/40);
+
 io.on('connection', function(socket) {
  
     socket.on('disconnect',function(){
@@ -204,31 +224,14 @@ io.on('connection', function(socket) {
                 io.to(data.ROOM_ID).emit('clearCanvas', {});
                 getPosInRoom(PLAYER_LIST[socket.id]);
                 PLAYER_LIST[socket.id].canMove = true;
+                clearInterval(runtime);
+                setTimeout(function(){}, 3000);
+                runtime;
                 break;
             }
         }
     });
 })
- 
-setInterval(function() {
-    var pack = [];
-    for(var i in PLAYER_LIST) {
-        var player = PLAYER_LIST[i];
-        player.updatePosition();
-        pack.push({
-            x : player.x,
-            y : player.y,
-            color : player.color,
-            room : player.room,
-            key : player.key,
-        });
-    }
-    for(var i in SOCKET_LIST) {
-        var socket = SOCKET_LIST[i];
-        socket.emit('collision', {player : PLAYER_LIST[socket.id]});
-        socket.emit('newPositions', pack);
-    }
-}, 1000/40);
 
 function getColor(player) {
     var color = '#FFFFFF';
