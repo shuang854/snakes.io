@@ -5,14 +5,18 @@
         #playerlist { list-style-type: none; margin: 0; padding: 0; position: fixed; top: 510px; }
         #playerlist li { padding: 5px 10px; }
         #playerlist li:nth-child(odd) { background: #eee; }
+        #login { font-family: monospace; }
         #ctx { position: fixed; top: 8px; left: 8px; background: #FFFFFF; }
         #chat { height: 450px; width: calc(100% - 524px); overflow-y: scroll; overflow-x: hidden; position: fixed; top: 8px; right: 8px; }
-        #interface { height: 50px; width: calc(100% - 524px); position: fixed; top: 460px; right: 8px; }
+        #interface { height: 50px; width: calc(100% - 524px); position: fixed; top: 460px; right: 8px; font-family: monospace; }
         #textbox { position: absolute; bottom: 0; height: 30px; width: calc(100% - 120px); border: 0; padding: 10px; background: lightgreen; }
         #sendmsg { position: absolute; bottom: 0; height: 50px; right: 0; width: 100px; padding: 10px; background: seagreen; border: 0; font-size: 125%; }
         #messages { list-style-type: none; margin: 0; padding: 0; }
         #messages li { padding: 5px 10px; }
         #messages li:nth-child(odd) { background: palegreen; }
+        #refresh { position: fixed; top: 530px; left: 200px; height: 20px; width: 150px; }
+        #newgame { position: absolute; height: 100%; width: 80px; left: 0; font-family: monospace; }
+        #refcount { position: absolute; height: 17px; bottom: 0; left: 90px; }
     </style>
 </head>
 <body>
@@ -30,6 +34,10 @@
         <input id="textbox" autocomplete="off" /><button id="sendmsg">Send</button>
     </form>
     <ul id="playerlist"></ul>
+    <div id="refresh">
+        <button id="newgame">New Game</button>
+        <div id="refcount">0/4</div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var ctx = document.getElementById("ctx").getContext("2d");
@@ -42,10 +50,13 @@
         var sendmsg = document.querySelector('#interface');
         var playerlist = document.querySelector('#playerlist');
         var canvas = document.querySelector('#ctx');
+        var newgame = document.querySelector('#newgame');
+        var refresh = document.querySelector('#refresh');
         chat.style.display = 'none';
         sendmsg.style.display = 'none';
         playerlist.style.display = 'none';
         canvas.style.display = 'none';
+        refresh.style.display = 'none';
         
         // process login information, remove login prompt, show chat interface
         var username;
@@ -67,6 +78,11 @@
             var msg = document.getElementById('textbox').value;
             socket.emit('message', {MESSAGE : msg, ROOM_ID : roomID, USER_ID : username});
             document.getElementById('textbox').value = "";
+        });
+        
+        newgame.addEventListener('click', function(event) {
+            newgame.disabled = true;
+            socket.emit('refresh', {ROOM_ID : roomID});
         });
         
         socket.on('showMsg', function(data) {
@@ -161,7 +177,18 @@
             ctx.fillStyle = data.color;
             ctx.font = '20px Arial';
             ctx.fillText('Winner: ' + data.winner, 250, 250, 200);
-        })
+            refresh.style.display = 'block';
+        });
+        
+        socket.on('newGame', function(data) {
+            document.querySelector('#refcount').innerHTML = data.count + '/4';
+            if (data.count == 4) {
+                refresh.style.display = 'none';
+                newgame.disabled = false;
+                document.querySelector('#refcount').innerHTML = '0/4';
+                socket.emit('resetGame', {ROOM_ID : roomID});
+            }
+        });
     
         document.onkeydown = function(event) {
             if (gameStart) {

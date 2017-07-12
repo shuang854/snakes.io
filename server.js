@@ -56,7 +56,8 @@ var Room = function(id) {
     var self = {
         id : id,
         count : 0,
-        winCount : 0
+        winCount : 0,
+        refresh : 0
     }
     return self;
 }
@@ -160,7 +161,7 @@ io.on('connection', function(socket) {
         socket.emit('roomExists', {state : exists});
     });
     
-    socket.once('crash', function(data) {
+    socket.on('crash', function(data) {
         var player = PLAYER_LIST[data.player];
         player.canMove = false;
         for (var i = 0; i < ROOM_LIST.length; i++) {
@@ -169,7 +170,6 @@ io.on('connection', function(socket) {
                 if (ROOM_LIST[i].winCount >= 3) {
                     var winner = getWinner(ROOM_LIST[i].id);
                     io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
-                    ROOM_LIST.splice(i, 1);
                 }
                 break;
             }
@@ -179,13 +179,39 @@ io.on('connection', function(socket) {
     socket.on('message', function(data) {
         io.to(data.ROOM_ID).emit('showMsg', {MESSAGE : data.MESSAGE, USER_ID: data.USER_ID});
     });
+    
+    socket.on('refresh', function(data) {
+        for (var i = 0; i < ROOM_LIST.length; i++) {
+            if (data.ROOM_ID == ROOM_LIST[i].id) {
+                ROOM_LIST[i].refresh++;
+                io.to(data.ROOM_ID).emit('newGame', {count : ROOM_LIST[i].refresh});
+                console.log(ROOM_LIST[i].refresh);
+                break;
+            }
+        }
+    });
+    
+    socket.on('resetGame', function(data) {
+        for (var i = 0; i < ROOM_LIST.length; i++) {
+            if (data.ROOM_ID == ROOM_LIST[i].id) {
+                ROOM_LIST[i].refresh = 0;
+                ROOM_LIST[i].winCount = 0;
+                io.to(data.ROOM_ID).emit('clearCanvas', {});
+                getPosInRoom(PLAYER_LIST[socket.id]);
+                PLAYER_LIST[socket.id].canMove = true;
+                break;
+            }
+        }
+    });
 })
  
 setInterval(function() {
     var pack = [];
     for(var i in PLAYER_LIST) {
         var player = PLAYER_LIST[i];
+        var socket = SOCKET_LIST[i];
         player.updatePosition();
+        socket.emit('collision', {player : player});
         pack.push({
             x : player.x,
             y : player.y,
@@ -196,7 +222,6 @@ setInterval(function() {
     }
     for(var i in SOCKET_LIST) {
         var socket = SOCKET_LIST[i];
-        socket.emit('collision', {player : PLAYER_LIST[socket.id]});
         socket.emit('newPositions', pack);
     }
 }, 1000/40);
