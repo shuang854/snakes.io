@@ -173,7 +173,7 @@ io.on('connection', function(socket) {
                     if (ROOM_LIST[i].winCount == 3) {
                         var winner = getWinner(ROOM_LIST[i].id);
                         io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
-                        ROOM_LIST.winCount = 4;
+                        ROOM_LIST[i].winCount = 4;
                     }
                     break;
                 }
