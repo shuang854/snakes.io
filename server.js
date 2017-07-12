@@ -212,9 +212,7 @@ setInterval(function() {
     var pack = [];
     for(var i in PLAYER_LIST) {
         var player = PLAYER_LIST[i];
-        var socket = SOCKET_LIST[i];
         player.updatePosition();
-        socket.emit('collision', {player : player});
         pack.push({
             x : player.x,
             y : player.y,
@@ -224,6 +222,8 @@ setInterval(function() {
         });
     }
     for(var i in SOCKET_LIST) {
+        var socket = SOCKET_LIST[i];
+        socket.emit('collision', {player : PLAYER_LIST[socket.id]});
         socket.emit('newPositions', pack);
     }
 }, 1000/40);
