@@ -69,18 +69,20 @@ io.on('connection', function(socket) {
             var player = PLAYER_LIST[socket.id];
             for (var i = 0; i < ROOM_LIST.length; i++) {
                 if (player.room == ROOM_LIST[i].id) {
+                    
                     if (ROOM_LIST[i].count == 4) {
                         delete PLAYER_LIST[socket.id];
                         delete SOCKET_LIST[socket.id];
-                        if (player.canMove)
+                        if (player.canMove && ROOM_LIST[i].winCount < 3)
                             ROOM_LIST[i].winCount++;
-                        if (ROOM_LIST[i].winCount >= 3) {
+                        if (ROOM_LIST[i].winCount == 3) {
                             var winner = getWinner(ROOM_LIST[i].id);
                             io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
-                            ROOM_LIST.splice(i, 1);
                         }
+                        ROOM_LIST[i].count--;
                         break;
                     }
+
                     ROOM_LIST[i].count--;
                     if (ROOM_LIST[i].count == 0)
                         ROOM_LIST.splice(i, 1);
@@ -89,7 +91,6 @@ io.on('connection', function(socket) {
                     delete SOCKET_LIST[socket.id];
                     for (var i in PLAYER_LIST) {
                         if (PLAYER_LIST[i].room == player.room && player.count < PLAYER_LIST[i].count) {
-                
                             PLAYER_LIST[i].count--;
                             getPosInRoom(PLAYER_LIST[i]);
                             getColor(PLAYER_LIST[i]);
@@ -163,15 +164,17 @@ io.on('connection', function(socket) {
     
     socket.on('crash', function(data) {
         var player = PLAYER_LIST[data.player];
-        player.canMove = false;
-        for (var i = 0; i < ROOM_LIST.length; i++) {
-            if (player.room == ROOM_LIST[i].id) {
-                ROOM_LIST[i].winCount++;
-                if (ROOM_LIST[i].winCount >= 3) {
-                    var winner = getWinner(ROOM_LIST[i].id);
-                    io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
+        if (player.canMove) {
+            player.canMove = false;
+            for (var i = 0; i < ROOM_LIST.length; i++) {
+                if (player.room == ROOM_LIST[i].id) {
+                    ROOM_LIST[i].winCount++;
+                    if (ROOM_LIST[i].winCount >= 3) {
+                        var winner = getWinner(ROOM_LIST[i].id);
+                        io.to(ROOM_LIST[i].id).emit('winner', {winner : winner.username, color : winner.color});
+                    }
+                    break;
                 }
-                break;
             }
         }
     });
@@ -218,8 +221,10 @@ setInterval(function() {
             color : player.color,
             room : player.room,
             key : player.key,
-        });    
-        socket.emit('newPositions', {pack});
+        });
+    }
+    for(var i in SOCKET_LIST) {
+        socket.emit('newPositions', pack);
     }
 }, 1000/40);
 
