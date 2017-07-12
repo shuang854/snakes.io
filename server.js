@@ -219,10 +219,7 @@ setInterval(function() {
             room : player.room,
             key : player.key,
         });    
-    }
-    for(var i in SOCKET_LIST) {
-        var socket = SOCKET_LIST[i];
-        socket.emit('newPositions', pack);
+        socket.emit('newPositions', {pack});
     }
 }, 1000/40);
 
