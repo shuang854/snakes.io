@@ -197,8 +197,8 @@
         
         // start a new game in the same room
         socket.on('updateRefresh', function(data) {
-            document.querySelector('#refcount').innerHTML = data.count + '/4';
-            if (data.count == 4) {
+            document.querySelector('#refcount').innerHTML = data.room.refresh + '/4';
+            if (data.room.refresh == 4 || data.room.count < 4) {
                 refresh.style.display = 'none';
                 newgame.disabled = false;
                 document.querySelector('#refcount').innerHTML = '0/4';

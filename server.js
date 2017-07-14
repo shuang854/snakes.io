@@ -77,6 +77,7 @@ io.on('connection', function(socket) {
             for (var i = 0; i < ROOM_LIST.length; i++) {
                 if (player.room == ROOM_LIST[i].id) {
                     ROOM_LIST[i].count--;
+                    io.to(ROOM_LIST[i].id).emit('updateRefresh', {room : ROOM_LIST[i]});
                     
                     if (ROOM_LIST[i].hasStarted) {
                         delete PLAYER_LIST[socket.id];
@@ -103,6 +104,7 @@ io.on('connection', function(socket) {
                         delete PLAYER_LIST[socket.id];
                         delete SOCKET_LIST[socket.id];
                         initPos(player);
+                        updatePos();
                     }
                     
                     io.to(player.room).emit('getUsers', {players : PLAYER_LIST});
@@ -202,7 +204,7 @@ io.on('connection', function(socket) {
         for (var i = 0; i < ROOM_LIST.length; i++) {
             if (data.ROOM_ID == ROOM_LIST[i].id) {
                 ROOM_LIST[i].refresh++;
-                io.to(data.ROOM_ID).emit('updateRefresh', {count : ROOM_LIST[i].refresh});
+                io.to(data.ROOM_ID).emit('updateRefresh', {room : ROOM_LIST[i]});
                 if (ROOM_LIST[i].refresh == 4)
                     socket.emit('newGame', {count : ROOM_LIST[i].refresh});
                 break;
@@ -302,8 +304,9 @@ function startGame(room) {
 
 function initPos(player) {
     for (var i in PLAYER_LIST) {
-        if (PLAYER_LIST[i].room == player.room && player.count < PLAYER_LIST[i].count) {
-            PLAYER_LIST[i].count--;
+        if (PLAYER_LIST[i].room == player.room) {
+            if (player.count < PLAYER_LIST[i].count)
+                PLAYER_LIST[i].count--;
             getPosInRoom(PLAYER_LIST[i]);
             getColor(PLAYER_LIST[i]);
         }
