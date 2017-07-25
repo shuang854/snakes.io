@@ -34,7 +34,7 @@ var Player = function(id) {
         color : '#FFFFFF',
         canMove : false,
         key : 'up',
-        maxSpd : 1,
+        maxSpd : 5,
         room : 0,
     }
     self.updatePosition = function() {
@@ -66,7 +66,7 @@ var Room = function(id) {
 var running = true;
 var runtime = setInterval(function() {
     updatePos();
-}, 1000/40);
+}, 1000/10);
 
 io.on('connection', function(socket) {
 
@@ -78,6 +78,10 @@ io.on('connection', function(socket) {
                 if (player.room == ROOM_LIST[i].id) {
                     ROOM_LIST[i].count--;
                     io.to(ROOM_LIST[i].id).emit('updateRefresh', {room : ROOM_LIST[i]});
+                    if (ROOM_LIST[i].count == 0) {
+                        ROOM_LIST.splice(i, 1);
+                        break;
+                    } 
                     
                     if (ROOM_LIST[i].hasStarted) {
                         delete PLAYER_LIST[socket.id];
@@ -98,8 +102,6 @@ io.on('connection', function(socket) {
                             }
                         }
                     } else {
-                        if (ROOM_LIST[i].count == 0)
-                            ROOM_LIST.splice(i, 1);
                         io.to(player.room).emit('clearCanvas', {});
                         delete PLAYER_LIST[socket.id];
                         delete SOCKET_LIST[socket.id];
@@ -150,12 +152,12 @@ io.on('connection', function(socket) {
                 getPosInRoom(player);
                 getColor(player);
                 if (ROOM_LIST[i].count == 4) {
+                    startGame(ROOM_LIST[i]);
                     for (var j in PLAYER_LIST) {
                         if (PLAYER_LIST[j].room == data.ROOM_ID) {
                             PLAYER_LIST[j].canMove = true;
                         }
-                    }
-                    startGame(ROOM_LIST[i]);
+                    }                    
                 }
                 break;
             }

@@ -1,24 +1,24 @@
 <!doctype html>
 <head>
     <style>
-        body { font-family: monospace; background: #E4FEED; }
+        body { font-family: "Trebuchet MS", Helvetica, sans-serif; background: #E4FEED; }
         #playerlist { list-style-type: none; margin: 0; padding: 0; position: fixed; top: 510px; }
         #playerlist li { padding: 5px 10px; }
         #playerlist li:nth-child(odd) { background: #eee; }
-        #login { font-family: monospace; color: darkgreen; font-size: 125%; }
-        #userID { font-family: monospace; }
-        #submission { font-family: monospace; background: lightgreen; border: 0; padding: 10px; }
+        #login { font-family: "Trebuchet MS", Helvetica, sans-serif; color: darkgreen; font-size: 125%; }
+        #userID { font-family: "Trebuchet MS", Helvetica, sans-serif; }
+        #submission { font-family: "Trebuchet MS", Helvetica, sans-serif; background: lightgreen; border: 0; padding: 10px; }
         #ctx { position: fixed; top: 8px; left: 8px; background: #FFFFFF; }
         #chat { height: 450px; width: calc(100% - 524px); overflow-y: scroll; overflow-x: hidden; position: fixed; top: 8px; right: 8px; }
         #interface { height: 50px; width: calc(100% - 524px); position: fixed; top: 460px; right: 8px; font-family: monospace; }
-        #textbox { position: absolute; bottom: 0; height: 30px; width: calc(100% - 120px); border: 0; padding: 10px; background: lightgreen; font-family: monospace; }
-        #sendmsg { position: absolute; bottom: 0; height: 50px; right: 0; width: 100px; padding: 10px; background: seagreen; border: 0; font-size: 125%; font-family: monospace; }
+        #textbox { position: absolute; bottom: 0; height: 30px; width: calc(100% - 120px); border: 0; padding: 10px; background: lightgreen; font-family: "Trebuchet MS", Helvetica, sans-serif; }
+        #sendmsg { position: absolute; bottom: 0; height: 50px; right: 0; width: 100px; padding: 10px; background: seagreen; border: 0; font-size: 125%; font-family: "Trebuchet MS", Helvetica, sans-serif; }
         #messages { list-style-type: none; margin: 0; padding: 0; }
         #messages li { padding: 5px 10px; }
         #messages li:nth-child(odd) { background: palegreen; }
-        #refresh { position: fixed; top: 530px; left: 200px; height: 20px; width: 150px; }
-        #newgame { position: absolute; height: 100%; width: 80px; left: 0; font-family: monospace; }
-        #refcount { position: absolute; height: 17px; bottom: 0; left: 90px; }
+        #refresh { position: fixed; top: 540px; left: 200px; height: 30px; width: 150px; }
+        #newgame { position: absolute; height: 100%; width: 100px; border: none; left: 0; font-family: "Trebuchet MS", Helvetica, sans-serif; background: seagreen; }
+        #refcount { position: absolute; height: 25px; bottom: 0; left: 120px; }
     </style>
 </head>
 <body>
