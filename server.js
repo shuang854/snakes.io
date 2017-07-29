@@ -227,6 +227,7 @@ io.on('connection', function(socket) {
                 if (ROOM_LIST[i].count == 4) {
                     for (var j in PLAYER_LIST) {
                         if (PLAYER_LIST[j].room == data.ROOM_ID) {
+                            PLAYER_LIST[j].key = 'up';
                             getPosInRoom(PLAYER_LIST[j]);
                             PLAYER_LIST[j].canMove = true;
                         }
@@ -237,6 +238,7 @@ io.on('connection', function(socket) {
                         if (PLAYER_LIST[j].room == data.ROOM_ID) {
                             getPosInRoom(PLAYER_LIST[j]);
                             getColor(PLAYER_LIST[j]);
+                            PLAYER_LIST[j].key = 'up';
                         }
                     }
                     socket.emit('getUsers', {players : PLAYER_LIST, count : ROOM_LIST[i].count});

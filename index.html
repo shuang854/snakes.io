@@ -133,7 +133,7 @@
             for(var i = 0 ; i < data.length; i++) {
                 if (roomID == data[i].room) {
                     ctx.fillStyle = data[i].color;
-                    ctx.fillRect(data[i].x, data[i].y, 10, 10);
+                    ctx.fillRect(data[i].x, data[i].y, 5, 5);
                 }
             }
         });
@@ -148,7 +148,7 @@
                 if (data.player.x <= 0 || data.player.y <= 0 || data.player.x >= 500 || data.player.y >= 500) {
                     socket.emit('crash', {player : data.player.id});
                 } else if (data.player.key == 'right') {
-                    var coll = ctx.getImageData(data.player.x+10+1, data.player.y, 1, 10).data;
+                    var coll = ctx.getImageData(data.player.x+5+1, data.player.y, 1, 5).data;
                     for (var j = 0; j < coll.length; j++) {
                         if (coll[j] != 0) {
                             socket.emit('crash', {player : data.player.id});
@@ -156,7 +156,7 @@
                         }
                     }
                 } else if (data.player.key == 'left') {
-                    var coll = ctx.getImageData(data.player.x-1, data.player.y, 1, 10).data;
+                    var coll = ctx.getImageData(data.player.x-1, data.player.y, 1, 5).data;
                     for (var j = 0; j < coll.length; j++) {
                         if (coll[j] != 0) {
                             socket.emit('crash', {player : data.player.id});
@@ -164,7 +164,7 @@
                         }
                     }
                 } else if (data.player.key == 'up') {
-                    var coll = ctx.getImageData(data.player.x, data.player.y-1, 10, 1).data;
+                    var coll = ctx.getImageData(data.player.x, data.player.y-1, 5, 1).data;
                     for (var j = 0; j < coll.length; j++) {
                         if (coll[j] != 0) {
                             socket.emit('crash', {player : data.player.id});
@@ -172,7 +172,7 @@
                         }
                     }
                 } else if (data.player.key == 'down') {
-                    var coll = ctx.getImageData(data.player.x, data.player.y+10+1, 10, 1).data;
+                    var coll = ctx.getImageData(data.player.x, data.player.y+5+1, 5, 1).data;
                     for (var j = 0; j < coll.length; j++) {
                         if (coll[j] != 0) {
                             socket.emit('crash', {player : data.player.id});
