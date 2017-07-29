@@ -37,7 +37,7 @@
     <form id="interface" onsubmit="return false;">
         <input id="textbox" autocomplete="off" /><button id="sendmsg">Send</button>
     </form>
-    <ul id="playerlist"></ul>
+    <ul id="playerlist"><li>Players: </li></ul>
     <div id="refresh">
         <button id="newgame">New Game</button>
         <div id="refcount">0/4</div>
@@ -103,13 +103,13 @@
         
         // retrieve list of users in a room
         socket.on('getUsers', function(data) {
-            while (playerlist.childNodes.length > 0) {
+            while (playerlist.childNodes.length > 1) {
                 playerlist.removeChild(playerlist.lastChild);
             }
             var players = data.players;
             var li = document.createElement('li');
             for (var i in players) {
-                if (players[i].room == roomID) {
+                if (players[i].room == roomID && data.count <= 4) {
                     li = document.createElement('li');
                     var svgns = 'http://www.w3.org/2000/svg';
                     var svg = document.createElementNS(svgns, 'svg');

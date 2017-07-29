@@ -15,7 +15,7 @@ app.get('/',function(req, res) {
 app.get('/*', function(req, res) {
     var url = req.path.substring(1);
     for (var i = 0; i < ROOM_LIST.length; i++) {
-        if (ROOM_LIST[i].id == url && ROOM_LIST[i].count < 4 && ROOM_LIST[i].hasStarted == false) {
+        if (ROOM_LIST[i].id == url && ROOM_LIST[i].count < 4 && !ROOM_LIST[i].hasStarted) {
             res.sendFile(__dirname + '/index.html');
             return;
         }
@@ -25,11 +25,10 @@ app.get('/*', function(req, res) {
 
 var Player = function(id) {
     var self = {
-        x : 125,
-        y : 125,
+        x : -99,
+        y : -99,
         id : id,
         username : '',
-        number : '' + Math.floor(10 * Math.random()),
         count : 0,
         color : '#FFFFFF',
         canMove : false,
@@ -109,7 +108,7 @@ io.on('connection', function(socket) {
                         updatePos();
                     }
                     
-                    io.to(player.room).emit('getUsers', {players : PLAYER_LIST});
+                    io.to(player.room).emit('getUsers', {players : PLAYER_LIST, count : ROOM_LIST[i].count});
                     break;
                 }
             }
@@ -145,12 +144,15 @@ io.on('connection', function(socket) {
         player.username = data.USER_ID;
         PLAYER_LIST[socket.id] = player;
         
+        var room;
         for (var i = 0; i < ROOM_LIST.length; i++) {
             if (ROOM_LIST[i].id == data.ROOM_ID) {
-                ROOM_LIST[i].count++;
+                room = ROOM_LIST[i];
+                room.count++;
                 player.count = ROOM_LIST[i].count;
                 getPosInRoom(player);
                 getColor(player);
+                
                 if (ROOM_LIST[i].count == 4) {
                     startGame(ROOM_LIST[i]);
                     for (var j in PLAYER_LIST) {
@@ -162,7 +164,7 @@ io.on('connection', function(socket) {
                 break;
             }
         }
-        io.to(player.room).emit('getUsers', {players : PLAYER_LIST});
+        io.to(player.room).emit('getUsers', {players : PLAYER_LIST, count : room.count});
     });
     
     // check if a room exists (for lobby)
@@ -237,7 +239,7 @@ io.on('connection', function(socket) {
                             getColor(PLAYER_LIST[j]);
                         }
                     }
-                    socket.emit('getUsers', {players : PLAYER_LIST});
+                    socket.emit('getUsers', {players : PLAYER_LIST, count : ROOM_LIST[i].count});
                 }
             }
         }
